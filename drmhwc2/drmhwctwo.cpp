@@ -67,7 +67,7 @@ static inline long __currentTime(){
       String8 output; \
       for(auto &drmHwcLayer : drmHwcLayers) {\
         drmHwcLayer.DumpInfo(output); \
-        ALOGD_IF(LogLevel(log_level),"%s",output.string()); \
+        ALOGD_IF(LogLevel(log_level),"%s",output.c_str()); \
         output.clear(); \
       }\
     }
@@ -248,7 +248,7 @@ void DrmHwcTwo::Dump(uint32_t *size, char *buffer) {
     if((map_disp.second.DumpDisplayInfo(output)) < 0)
       continue;
   }
-  mDumpString = output.string();
+  mDumpString = output.c_str();
   *size = static_cast<uint32_t>(mDumpString.size());
   return;
 }
@@ -1274,7 +1274,7 @@ void DrmHwcTwo::HwcDisplay::AddFenceToRetireFence(int fd) {
     const sp<ReleaseFence> client_rf = client_layer_.back_release_fence();
     if(client_rf->isValid()){
       retire_fence_fd = dup(client_rf->getFd());
-      sprintf(acBuf,"RTD%" PRIu64 "-FN%d-%d", handle_, frame_no_, 0);
+      snprintf(acBuf, sizeof(acBuf),"RTD%" PRIu64 "-FN%d-%d", handle_, frame_no_, 0);
     }
     for (std::pair<const hwc2_layer_t, DrmHwcTwo::HwcLayer> &hwc2layer : layers_) {
     if(hwc2layer.second.validated_type() != HWC2::Composition::Device)
@@ -1285,7 +1285,7 @@ void DrmHwcTwo::HwcDisplay::AddFenceToRetireFence(int fd) {
       if (rf->isValid()){
         // cur_retire_fence is null
         if(retire_fence_fd > 0){
-          sprintf(acBuf,"RTD%" PRIu64 "-FN%d-%" PRIu64,handle_, frame_no_, hwc2layer.first);
+          snprintf(acBuf, sizeof(acBuf),"RTD%" PRIu64 "-FN%d-%" PRIu64,handle_, frame_no_, hwc2layer.first);
           int retire_fence_merge = rf->merge(retire_fence_fd, acBuf);
           if(retire_fence_merge > 0){
             close(retire_fence_fd);
@@ -1914,7 +1914,7 @@ HWC2::Error DrmHwcTwo::HwcDisplay::PresentDisplay(int32_t *retire_fence) {
   if(merge_retire_fence > 0){
     if(d_retire_fence_.get()->isValid()){
       char acBuf[32];
-      sprintf(acBuf,"RTD%" PRIu64 "M-FN%d-%d", handle_, frame_no_, 0);
+      snprintf(acBuf, sizeof(acBuf),"RTD%" PRIu64 "M-FN%d-%d", handle_, frame_no_, 0);
       sp<ReleaseFence> rt = sp<ReleaseFence>(new ReleaseFence(merge_retire_fence, acBuf));
       *retire_fence = rt->merge(d_retire_fence_.get()->getFd(), acBuf);
     }else{
@@ -2575,21 +2575,21 @@ int DrmHwcTwo::HwcDisplay::DumpDisplayLayersInfo(){
               "------+-----+-----------+-----------+--------------------+-------------+------------+--------------------------------+------------------------+------------+--------+------------\n"
               "  id  |  z  |  sf-type  |  hwc-type |       handle       |  transform  |    blnd    |     source crop (l,t,r,b)      |          frame         | dataspace  |  mFps  | name       \n"
               "------+-----+-----------+-----------+--------------------+-------------+------------+--------------------------------+------------------------+------------+--------+------------\n");
-  ALOGD("%s",output.string());
+  ALOGD("%s",output.c_str());
   for (uint32_t z_order = 0; z_order <= layers_.size(); z_order++) {
     for (auto &map_layer : layers_) {
       HwcLayer &layer = map_layer.second;
       if(layer.z_order() == z_order){
         output.clear();
         layer.DumpLayerInfo(output);
-        ALOGD("%s",output.string());
+        ALOGD("%s",output.c_str());
         break;
       }
     }
   }
   output.clear();
   output.append("------+-----+-----------+-----------+--------------------+-------------+------------+--------------------------------+------------------------+------------+--------+------------\n");
-  ALOGD("%s",output.string());
+  ALOGD("%s",output.c_str());
   return 0;
 }
 int DrmHwcTwo::HwcDisplay::DumpAllLayerData(){
@@ -3384,10 +3384,10 @@ int DrmHwcTwo::HwcDisplay::DoMirrorDisplay(int32_t *retire_fence){
         display.PresentDisplay(&rt_fence);
         if(merge_rt_fence > 0){
             char acBuf[32];
-            sprintf(acBuf,"RTD%" PRIu64 "M-FN%d-%d", handle_, frame_no_, display_cnt++);
+            snprintf(acBuf, sizeof(acBuf),"RTD%" PRIu64 "M-FN%d-%d", handle_, frame_no_, display_cnt++);
             sp<ReleaseFence> rt = sp<ReleaseFence>(new ReleaseFence(rt_fence, acBuf));
             if(rt->isValid()){
-              sprintf(acBuf,"RTD%" PRIu64 "M-FN%d-%d",handle_, frame_no_, display_cnt++);
+              snprintf(acBuf, sizeof(acBuf),"RTD%" PRIu64 "M-FN%d-%d",handle_, frame_no_, display_cnt++);
               int32_t merge_rt_fence_temp = merge_rt_fence;
               merge_rt_fence = rt->merge(merge_rt_fence, acBuf);
               close(merge_rt_fence_temp);

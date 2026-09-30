@@ -236,8 +236,8 @@ int DrmDisplayComposition::CreateAndAssignReleaseFences(SyncTimeline &sync_timel
     }
 
 
-    int sync_timeline_cnt = sync_timeline.IncTimeline();
-    sprintf(acBuf,"RFD%" PRIu64 "-FN%" PRIu64 "-TC%d" ,display_id_, frame_no_, sync_timeline_cnt);
+    uint32_t sync_timeline_cnt = sync_timeline.IncTimeline();
+    snprintf(acBuf, sizeof(acBuf),"RFD%" PRIu64 "-FN%" PRIu64 "-TC%u" ,display_id_, frame_no_, sync_timeline_cnt);
     layer->release_fence = sp<ReleaseFence>(new ReleaseFence(sync_timeline, sync_timeline_cnt, acBuf));
     if (layer->release_fence->isValid()){
       HWC2_ALOGD_IF_DEBUG(" Create ReleaseFence(%s) Sucess: frame = %" PRIu64 " LayerName=%s",acBuf, frame_no_, layer->sLayerName_.c_str());

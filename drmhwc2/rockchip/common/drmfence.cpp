@@ -15,8 +15,11 @@
  */
 
 #include "utils/drmfence.h"
+#include <atomic>
 
 namespace android {
+
+static std::atomic<uint32_t> s_fenceCount{0};
 
 const sp<ReleaseFence> ReleaseFence::NO_FENCE = sp<ReleaseFence>(new ReleaseFence);
 const sp<AcquireFence> AcquireFence::NO_FENCE = sp<AcquireFence>(new AcquireFence);
@@ -24,8 +27,10 @@ const sp<AcquireFence> AcquireFence::NO_FENCE = sp<AcquireFence>(new AcquireFenc
 // SyncTimeline:
 SyncTimeline::SyncTimeline() noexcept {
     int fd = sw_sync_timeline_create();
-    if (fd == -1)
+    if (fd < 0) {
+        ALOGE("Cannot create sw_sync timeline: %s", strerror(errno));
         return;
+    }
     bFdInitialized_ = true;
     iFd_ = fd;
 }
@@ -54,7 +59,7 @@ bool SyncTimeline::isValid() const {
 int SyncTimeline::getFd() const {
     return iFd_;
 }
-int SyncTimeline::IncTimeline() {
+uint32_t SyncTimeline::IncTimeline() {
     return ++iTimelineCnt_;
 }
 
@@ -75,20 +80,18 @@ ReleaseFence::ReleaseFence(const SyncTimeline &timeline,
           int value,
           const char *name) noexcept {
     std::string autoName = "allocReleaseFence";
-    autoName += s_fenceCount;
-    s_fenceCount++;
+    autoName += std::to_string(s_fenceCount.fetch_add(1, std::memory_order_relaxed));
     int fd = sw_sync_fence_create(timeline.getFd(), name ? name : autoName.c_str(), value);
     if (fd == -1)
         return;
-    setFd(fd, timeline.getFd(), name);
+    setFd(fd, timeline.getFd(), name ? name : autoName);
 
 }
 
 int ReleaseFence::merge(int fd, const char* name){
     if(isValid()){
       std::string autoName = "mergeReleaseFence";
-      autoName += s_fenceCount;
-      s_fenceCount++;
+      autoName += std::to_string(s_fenceCount.fetch_add(1, std::memory_order_relaxed));
       return sync_merge(name ? name : autoName.c_str(), getFd(), fd);
     }
     return -1;
@@ -199,8 +202,7 @@ AcquireFence::AcquireFence(const int fd) noexcept {
 int AcquireFence::merge(int fd, const char* name){
     if(isValid()){
       std::string autoName = "mergeAcquireFence";
-      autoName += s_fenceCount;
-      s_fenceCount++;
+      autoName += std::to_string(s_fenceCount.fetch_add(1, std::memory_order_relaxed));
       return sync_merge(name ? name : autoName.c_str(), getFd(), fd);
     }
     return -1;

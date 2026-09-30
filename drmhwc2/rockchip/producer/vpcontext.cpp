@@ -155,7 +155,7 @@ int VpContext::AddReleaseFence(uint64_t buffer_id){
   if(mMapBuffer_.count(buffer_id)){
     char acBuf[32];
     uFrameNo_ = mTimeLine_.IncTimeline();
-    sprintf(acBuf,"RFVP-ID%d-B%" PRIu64 "-FN%" PRIu64, iTunnelId_, buffer_id, uFrameNo_);
+    snprintf(acBuf, sizeof(acBuf),"RFVP-ID%d-B%" PRIu64 "-FN%" PRIu64, iTunnelId_, buffer_id, uFrameNo_);
     sp<ReleaseFence> release_fence = sp<ReleaseFence>(new ReleaseFence(mTimeLine_, uFrameNo_, acBuf));
     auto &buffer_info = mMapBuffer_[buffer_id];
     buffer_info->SetReleaseFence(release_fence);

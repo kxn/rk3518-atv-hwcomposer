@@ -769,9 +769,9 @@ uint32_t DrmGralloc::hwc_get_fourcc_from_hal_format(int hal_format){
       return DRM_FORMAT_NV12;
     case HAL_PIXEL_FORMAT_YCrCb_NV12_10:
       // DrmVersion:
-      // 3.0.0 = Kernel 5.10
+      // DRM major 3 (kernel 5.10) and 4 (kernel 6.1) use upstream FourCCs.
       // 2.0.0 = Kernel 4.19 Vop driver 不支持 NV15格式
-      if(drmVersion_ == 3){
+      if(drmVersion_ >= 3){
         return DRM_FORMAT_NV15;
       }else{
         return DRM_FORMAT_NV12_10;
@@ -779,18 +779,18 @@ uint32_t DrmGralloc::hwc_get_fourcc_from_hal_format(int hal_format){
     // From hardware/rockchip/libgralloc/gralloc_drm_rockchip.cpp rk_drm_gralloc_select_format()
     case HAL_PIXEL_FORMAT_YUV420_8BIT_I:  // NV12 AFBC,  MALI_GRALLOC_FORMAT_INTERNAL_YUV420_8BIT_I
       // DrmVersion:
-      // 3.0.0 = Kernel 5.10
+      // DRM major 3 (kernel 5.10) and 4 (kernel 6.1) use upstream FourCCs.
       // 2.0.0 = Kernel 4.19 Vop driver 不支持 YUV420_8BIT 格式
-      if(drmVersion_ == 3){
+      if(drmVersion_ >= 3){
         return DRM_FORMAT_YUV420_8BIT;
       }else{
         return DRM_FORMAT_NV12;
       }
     case HAL_PIXEL_FORMAT_YUV420_10BIT_I: // NV12_10bit AFBC MALI_GRALLOC_FORMAT_INTERNAL_Y210
       // DrmVersion:
-      // 3.0.0 = Kernel 5.10
+      // DRM major 3 (kernel 5.10) and 4 (kernel 6.1) use upstream FourCCs.
       // 2.0.0 = Kernel 4.19 Vop driver 不支持 YUV420_8BIT 格式
-      if(drmVersion_ == 3){
+      if(drmVersion_ >= 3){
         return DRM_FORMAT_YUV420_10BIT;
       }else{
         return DRM_FORMAT_NV12_10;

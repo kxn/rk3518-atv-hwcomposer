@@ -37,11 +37,11 @@ public:
     void destroy();
     bool isValid() const;
     int getFd() const;
-    int IncTimeline();
+    uint32_t IncTimeline();
 private:
     int iFd_ = -1;
     bool bFdInitialized_ = false;
-    int iTimelineCnt_ = 0;
+    uint32_t iTimelineCnt_ = 0;
 };
 
 struct SyncPointInfo {
@@ -51,7 +51,6 @@ struct SyncPointInfo {
     int status; // 1 sig, 0 active, neg is err
 };
 
-static int s_fenceCount = 0;
 
 // Wrapper class for sync fence.
 class ReleaseFence : public LightRefBase<ReleaseFence> {
